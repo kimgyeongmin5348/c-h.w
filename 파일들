@@ -1,0 +1,274 @@
+Point.h
+====================================
+#ifndef _Point
+#define _Point
+
+struct Point   // struct - 모든 멤버를 public으로 할때 적용
+{
+	double x, y;
+	Point();
+	Point(double, double);
+	Point(const Point&) = default;     //복자생성자 - 사용자가 만들 필요 없다는 의미
+};
+
+#endif // !_Point
+
+========================
+Point.cpp
+=========================
+#include "point.h"
+
+
+// 디폴트 생성자
+Point::Point() :x(0.0), y(0.0)
+{
+
+};
+
+//인자 두개를 받는 생성자
+Point::Point(double a, double b) : x(a), y(b)
+{
+
+};
+
+========================
+Shape.h
+========================
+
+#ifndef _Shape
+#define _Shape
+
+class Shape {
+public:
+	Shape() {};
+	~Shape() {};
+	virtual void draw() const = 0;
+};
+
+#endif // _Shape
+
+=====================
+circle.h
+====================
+
+#include "point.h"
+#include "shape.h"
+
+class Circle : public Shape
+{
+	Point center;
+	double rad;
+
+public:
+	Circle();
+	Circle(const Point&, int);
+	Circle(const Circle&);
+	~Circle();
+
+	virtual void draw() const override;
+};
+
+==================================
+circle.cpp
+=====================================
+
+#include <iostream>
+#include "circle.h"
+
+Circle::Circle() : center(), rad(0.0)
+{
+
+}
+
+Circle::Circle(const Point& c, int r) :center(c), rad(r)
+{
+
+}
+
+Circle::Circle(const Circle& other) :center(other.center), rad(other.rad) {
+
+}
+
+Circle::~Circle() {
+
+}
+
+void Circle::draw() const {
+	// 그림을 그리는 대신 내용을 문자로 출력
+	std::cout << "원 - 중심점(" << center.x << "," << center.y << ") 반지름 " << rad << std::endl;
+};
+
+================================
+triangle.h
+================================
+
+#include "point.h"
+#include "shape.h"
+
+class Triangle : public Shape {
+	Point p1, p2, p3;
+
+public:
+	Triangle();
+	Triangle(const Point&, const Point&, const Point&);
+	Triangle(const Triangle&);
+	~Triangle();
+
+	virtual void draw() const override;  // 가상함수 overriding
+};
+
+========================================
+triangle.cpp
+==========================================
+
+
+#include <iostream>
+#include "triangle.h"
+
+Triangle::Triangle() :p1(), p2(), p3() {
+
+};
+
+Triangle::Triangle(const Point& a, const Point& b, const Point& c) :p1(a), p2(b), p3(c) {
+
+};
+
+Triangle::Triangle(const Triangle& other) :p1(other.p1), p2(other.p2), p3(other.p3) {
+
+}
+
+Triangle::~Triangle() {
+
+}
+
+void Triangle::draw() const {
+	std::cout << "삼각형 - (" << p1.x << "," << p1.y << "), (" << p2.x << "," << p2.y << "), (" << p3.x << "," << p3.y << ")" << std::endl;
+};
+
+
+=================================
+rectangle.h
+===============================
+
+#include "point.h"
+#include "shape.h"
+
+class Rectangle :public Shape {
+	Point p1, p2;
+
+public:
+	Rectangle();
+	Rectangle(const Point&, const Point&);
+	Rectangle(const Rectangle&);
+	~Rectangle();
+
+	virtual void draw() const override;
+};
+
+
+=================================
+rectangle.cpp
+===================================
+
+#include <iostream>
+#include "rectangle.h"
+
+Rectangle::Rectangle() : p1(), p2() {
+
+};
+
+Rectangle::Rectangle(const Point& a, const Point& b) :p1(a), p2(b) {
+
+};
+
+Rectangle::Rectangle(const Rectangle& other) :p1(other.p1), p2(other.p2) {
+
+}
+
+Rectangle::~Rectangle() {
+
+}
+
+void Rectangle::draw() const {
+	std::cout << "사각형 - (" << p1.x << "," << p1.y << "), (" << p2.x << "," << p2.y << ")" << std::endl;
+}
+
+===================================
+shapemanger.h
+=====================================
+
+#include "shape.h"
+
+class ShapeManager {
+	int nShape;
+	int capacity;
+	Shape** shapes;
+
+public:
+	explicit ShapeManager(int n);
+	~ShapeManager();
+	ShapeManager(const ShapeManager&) = default;
+
+	void insert(Shape*);
+	void draw() const;
+};
+
+========================================
+shapemanger.cpp
+==========================================
+
+
+#include <iostream>
+#include "ShapeManger.h"
+using namespace std;
+
+ShapeManager::ShapeManager(int n) {
+	nShape = 0;
+	capacity = n;
+	shapes = new Shape * [capacity];
+}
+
+ShapeManager::~ShapeManager() {
+	delete[] shapes;
+};
+
+void ShapeManager::insert(Shape* a) {
+	cout << "===================================================" << endl;
+	cout << "관리하는 모든 도형을 그립니다." << endl;
+	cout << "최대" << capacity << "개의 도형을 담을 수 있습니다." << endl;
+	cout << "모두 " << nShape << "개의 도형이 있습니다." << endl;
+	cout << " ==================================================" << endl;
+
+	for (int i = 0; i < nShape; ++i) {
+		cout << "[" << i << "] ";
+		shapes[i]->draw();
+	}
+	cout << endl;
+
+	cout << "====================================================" << endl;
+	cout << "그리기를 마칩니다." << endl;
+	cout << "====================================================" << endl;
+};
+
+==========================
+다향성구현.cpp
+===============================
+
+#include "point.h"
+#include "triangle.h"
+#include "circle.h"
+#include "rectangle.h"
+#include "ShapeManger.h"
+
+int main() {
+	ShapeManager sm(100);
+
+	sm.insert(new Triangle());
+	sm.insert(new Triangle(Point(0, 0), Point(1, 1), Point(2, 2)));
+	sm.insert(new Circle(Point(1.23, 4.56), 7.89));
+
+	for (int i = 0; i < 10; ++i) {
+		sm.insert(new Rectangle(Point(i, i + 1), Point(i * 2, i * 3)));
+	}
+	sm.draw();
+}
